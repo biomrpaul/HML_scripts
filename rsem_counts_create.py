@@ -4,11 +4,12 @@ import numpy
 import array
 import pandas as pd
 #Produced by Matt Paul, 5.5.2014
-#This tool converts the expected counts from gene.results file outputs from RSEM and creates a counts table to be used for DESeq2 and edgeR. Create a folder with all of the RSEM outputs in them (sampleName.gene.results) and run this command
-    "python counts_create.py /filepath_to_outputs/*.gene.results"
+#This tool converts the expected counts from gene.results file outputs from RSEM and creates a counts table to be used for DESeq2 and edgeR. Create a folder that contains all of the RSEM outputs (sampleName.gene.results) and run this command "python counts_create.py /filepath_to_outputs/*.gene.results"
 
-#Gets the name of the first file in list of arguments
-name = sys.argv[1][:-20]
+#Finds the first word seperated by a '.', assumes that is the sample name
+period_pos = sys.argv[1].find('.')
+name = sys.argv[1][:period_pos]
+
 #opens first file
 firstFile = open(sys.argv[1], 'rb')
 #reads the file as a csv
@@ -34,7 +35,9 @@ counts_table= [gene_ids, first_counts]
 
 #Now that there is a 2D array with the gene_ids and the first sample's expected counts, this block creates and populates and array of exp. counts from each sample then adds it to the 2D array, effectively adding a new column
 for i in range(2, len(sys.argv)):
-    name = sys.argv[i][:-20]
+    
+    period_pos = sys.argv[i].find('.')
+    name = sys.argv[i][:period_pos]
     file = open(sys.argv[i], 'rb')
     data = csv.reader(file, delimiter='\t')
     counts=[]
@@ -52,15 +55,15 @@ for i in range(2, len(sys.argv)):
 #Make the 2D array into a numpy array (maybe not necessary?)
 ar = numpy.array(counts_table)
 #Create a new csv file and initiate a csv writer for that file
-output = open('shrimp.counts.csv', 'w')
-writer = csv.writer(output)
+output = open('rsem.counts.txt', 'w')
 
-#The for loop iterates though every element in the 2D arrays via rows (i). The collumns are accessed in the array (x). Therefore, x[i] is the expected count value for sample x.
+
+#To a print the count table as a tab delimited file, ehe for loop iterates though every element in the 2D arrays via rows (i). The collumns are accessed in the array (x). Therefore, x[i] is the expected count value for sample x.
 for i in range(0, len(gene_ids)-1):
-    row = []
+    row = ""
     for x in ar:
-        row.append(x[i])
-    writer.writerow(row)
+        row += x[i] + "\t"
+    output.write(row + "\n")
 output.close()
 
 print "well it ran"
