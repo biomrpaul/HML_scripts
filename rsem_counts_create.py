@@ -4,7 +4,9 @@ import numpy
 import array
 import pandas as pd
 #Produced by Matt Paul, 5.5.2014
-#This tool converts the expected counts from gene.results file outputs from RSEM and creates a counts table to be used for DESeq2 and edgeR. Create a folder that contains all of the RSEM outputs (sampleName.gene.results) and run this command "python counts_create.py /filepath_to_outputs/*.gene.results"
+#This tool converts the expected counts from gene.results file outputs from RSEM and creates a counts table to
+# be used for DESeq2 and edgeR. Create a folder that contains all of the RSEM outputs (sampleName.gene.results)
+# , copy this script into it, and run this command "python counts_create.py *.gene.results"
 
 #Finds the first word seperated by a '.', assumes that is the sample name
 period_pos = sys.argv[1].find('.')

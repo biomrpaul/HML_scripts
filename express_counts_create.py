@@ -3,17 +3,17 @@ import csv
 import numpy
 import array
 import re
-import pandas as pd
+
 #Produced by Matt Paul, 5.5.2014
 #This tool converts the expected counts from results.xprs file outputs from eXpress and creates a counts table to be 
-#used for DESeq2 and edgeR. Create a folder that contains all of the express result folders (sampleName.bam_xprs) a
-#nd run this command "python express_counts_create.py /filepath_to_outputs/*.bam_xprs"
+#used for DESeq2 and edgeR. Create a folder that contains all of the express result folders (sampleName.bam_xprs),
+# copy this script into it, and run  "python express_counts_create.py *.bam_xprs"
 
 
 #Finds the first word seperated by a '.', assumes that is the sample name
 period_pos = sys.argv[1].find('.')
 name = sys.argv[1][:period_pos]
-
+print name
 #Creates a dictionary to store gene_id/count pairs
 geneToCount = {}
 
