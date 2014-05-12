@@ -5,7 +5,9 @@ import array
 import re
 import pandas as pd
 #Produced by Matt Paul, 5.5.2014
-#This tool converts the expected counts from results.xprs file outputs from eXpress and creates a counts table to be used for DESeq2 and edgeR. Create a folder that contains all of the express result folders (sampleName.bam_xprs) and run this command "python counts_create.py /filepath_to_outputs/*.bam_xprs"
+#This tool converts the expected counts from results.xprs file outputs from eXpress and creates a counts table to be 
+#used for DESeq2 and edgeR. Create a folder that contains all of the express result folders (sampleName.bam_xprs) a
+#nd run this command "python counts_create.py /filepath_to_outputs/*.bam_xprs"
 
 
 #Finds the first word seperated by a '.', assumes that is the sample name
