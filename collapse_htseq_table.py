@@ -4,7 +4,7 @@ import os
 #of the same sequence name. The counts table is thus incompatible with DESeq2 and edgeR. Therefore,
 #the counts from transcripts of the same ref sequence  much be combined or collapsed together as belonging 
 #to one sequence. This script does that. Run "sudo python collapse_htseq_table.py <htseq.counts.txt> 
-new_table = open("htseq.counts.collapsed.txt", "w")
+new_table = open("htseq.counts.collapsed.txt", "wr")
 genes = {}
 table = open(sys.argv[1])
 lines = []
@@ -33,7 +33,7 @@ for x in ROWS:
 		if x[0] not in genes.keys():
 			genes[x[0]] = x[1:]
 		else:
-			for i in range(len(genes[x[0]])):
+			for i in range(1, len(genes[x[0]]), 1):
 				genes[x[0]][i] = genes[x[0]][i] + x[i]
 	else:
 		i += 1
@@ -58,4 +58,7 @@ for key in sorted(genes):
 	last_rows.append(row + "\n") 
 
 new_table.writelines(last_rows)
+
+
+
 
