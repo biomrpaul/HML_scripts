@@ -50,11 +50,13 @@ last_rows.append(firstRow + "\n")
 
 for key in sorted(genes):
 	row = key + "\t"
+	i = 1
 	for x in genes[key]:
-		if x != genes[key][len(genes[key])-1]:
-			row += x + "\t"
-		else:
+		if i == 36:
 			row += x
+		else:
+			row += x + "\t"
+            		i += 1
 	last_rows.append(row + "\n") 
 
 new_table.writelines(last_rows)
