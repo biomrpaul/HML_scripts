@@ -1,6 +1,13 @@
 import sys
 import os
 import math
+import shutil
+import csv
+
+folder = sys.argv[1]
+
+if os.path.isdir(folder + "_con_genes") == True:
+	shutil.rmtree(folder + "_con_genes")
 
 cuff = open("gene_exp.diff", "r")
 
@@ -11,6 +18,10 @@ PW_anals["N24vH24"] = {}
 PW_anals["N24vHH24"] = {}
 PW_anals["H4vHH4"] = {}
 PW_anals["H24vHH24"] = {}
+PW_anals["N4vN24"] = {}
+PW_anals["H4vH24"] = {}
+PW_anals["HH4vHH24"] = {}
+
 cuffList = {}
 
 i = 0
@@ -28,32 +39,41 @@ for x in cuff:
 		PW_anals["H4vHH4"][row[3][0:row[3].find(":")]] = row[9]
 	elif row[4] == "H24" and row[5] == "HH24":
 		PW_anals["H24vHH24"][row[3][0:row[3].find(":")]] = row[9]
+	elif row[4] == "N4" and row[5] == "N24":
+		PW_anals["N4vN24"][row[3][0:row[3].find(":")]] = row[9]
+	elif row[4] == "H4" and row[5] == "H24":
+		PW_anals["H4vH24"][row[3][0:row[3].find(":")]] = row[9]
+	elif row[4] == "HH4" and row[5] == "HH24":
+		PW_anals["HH4vHH24"][row[3][0:row[3].find(":")]] = row[9]
 	else:
 		l = 0
 
 
 sigGenes = {}
-path="shrimp_dge/"
+path=folder + "/"
 for dir in os.listdir(path):	
 	for sub in os.listdir(path + dir):
 		for list in os.listdir(path + dir + "/" +  sub):
 			newpath = path + dir + "/" +  sub + "/" + list
-			if list[0:5] == "genes" or list[len(list)-4:len(list)] == "cuff":
+			if list[0:5] == "genes" or list[len(list)-8:len(list)] == "cuff.txt":
 				if list.find('edgeR') > -1:
-					name= list[6:list.find('t')-1]
-				elif list[len(list)-4:len(list)] != "cuff":
+					name= list[6:list.find('txt')-1]
+				elif list[len(list)-8:len(list)] == "cuff.txt" :
+					name = list[:list.find('txt')-1]
+				else:
 					end = list.find('results')
 					name= list[6:end-1]
-				else:
-					name = list
+	
 				genes = []
 				for line in open(newpath):
-					if list[len(list)-4:len(list)] == "cuff":
+					if list[len(list)-8:len(list)] == "cuff.txt":
 						line = line[0:line.find(":")] + "\n"
 					genes.append(line)
 				sigGenes[name] = genes
-							
-output = open("dge-report.txt", "w")				
+
+os.makedirs(folder + "_con_genes")
+
+output = open(folder + "_con_genes/dge-report.txt", "w")
 for key in sorted(sigGenes):
 	list = sigGenes[key]
 	if len(list) == 1 and list[0]  == "\n":
@@ -70,6 +90,10 @@ anals["N24vH24"] = set()
 anals["N24vHH24"] = set()
 anals["H4vHH4"] = set()
 anals["H24vHH24"] = set()
+anals["N4vN24"] = set()
+anals["H4vH24"] = set()
+anals["HH4vHH24"] = set()
+
 for key in sigGenes:
 	for lock in sigGenes:
 		if key != lock and (key + lock) not in pairs:
@@ -96,18 +120,34 @@ for key in sigGenes:
 				else:
 					anals[keyName] = anals[keyName] | set(inter)
 
+annot = open("macro.csv", "rU")
+annotReader = csv.reader(annot)
+
+annots = {}
+for row in annotReader:
+	annots[row[1]] = [row[2], row[11]]
+
+
+
 for key in anals:
-	table = open(key + "_consensus_genes.txt", "w")
-	rsemTable = open("shrimp_dge/deseq-results/deseq.rsem/" + key + ".deseq.rsem.results.txt", "r")
-	table.write("contigs\tcuffdiff_log2fold\tcuffdiff_FC\tdeseq.RSEM_log2FC\tdeseq.RSEM_FC\tGO\tDescription\n")
-	logLookUp = {}
+	table = open(folder + "_con_genes/" + key + "_consensus_genes.txt", "w")
+	rsemTable = open(folder + "/deseq/rsem/" + key + ".deseq.rsem.results.txt", "r")
+	expressTable=open(folder + "/deseq/express/" + key + ".deseq.express.results.txt", "r")
+	table.write("contigs\tcuffdiff_FC\tdeseq.express_FC\tdeseq.RSEM_FC\tGO\tDescription\n")
+	rsemlogLookUp = {}
+	explogLookUp = {}
 	for y in rsemTable:
 		row = y.split("\t")
-		logLookUp[row[0].strip("\"")] = row[2].strip("\"")
+		rsemlogLookUp[row[0].strip("\"")] = row[2].strip("\"")
+	for y in expressTable:
+		row = y.split("\t")
+		explogLookUp[row[0].strip("\"")] = row[2].strip("\"")
+	
 	
 	for x in anals[key]:
 		cufflog2 = PW_anals[key][x.strip("\n")]
-		rsemlog2 = logLookUp[x.strip("\n")]
+		rsemlog2 = rsemlogLookUp[x.strip("\n")]
+		explog2 = explogLookUp[x.strip("\n")]
 		
 		if cufflog2 != "NA":
 			if float(cufflog2) < 0:
@@ -125,7 +165,20 @@ for key in anals:
 		else:
 			rsemFoldChange = "NA"
 
-		row = "" + x.strip("\n") + "\t" + str(cufflog2) + "\t" + str(cuffFoldChange) + "\t" + str(rsemlog2) + "\t" + str(rsemFoldChange) + "\n"
+		if explog2 != "NA":
+			if float(explog2) < 0:
+				expFoldChange = -1 * (math.pow(2, abs(float(explog2))))
+			else:
+				expFoldChange = math.pow(2, float(explog2))
+		else:
+			expFoldChange = "NA"
+
+		lock = x.strip("\n")
+		if lock in annots.keys():
+			row = "" + x.strip("\n") + "\t" + str(cuffFoldChange) +  "\t" + str(expFoldChange) + "\t" + str(rsemFoldChange) + "\t" + annots[x.strip("\n").strip("\"")][0] + "\t" + annots[x.strip("\n").strip("\"")][1] + "\n"
+		else:
+			row = "" + x.strip("\n") + "\t"  + str(cuffFoldChange) + "\t" + str(expFoldChange) + "\t" + str(rsemFoldChange) + "\t" + "ERROR: look up annot." + "\t" + "ERROR: look up annot." + "\n"
+
 		
 		table.write(row)
 
